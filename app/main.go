@@ -18,14 +18,18 @@ func main() {
 		if err != nil {
 			printErrorAndExit("Error reading input", err)
 		}
+		executeCommand(command)
+	}
+}
 
+func executeCommand(input string) {
+	parts := strings.SplitN(input, " ", 2)
+	command := parts[0]
+	arguments := parts[1:]
 
-		command = strings.TrimSpace(command)
-		parts := strings.SplitN(command, " ", 2) // command, args
-
-		switch parts[0] {
+		switch command {
 		case "exit":
-			exit_code, err := strconv.Atoi(parts[1])
+			exit_code, err := strconv.Atoi(arguments[1])
 			if err != nil {
 				fmt.Fprintln(os.Stderr, "Exit Code must be a number:", err)
 				os.Exit(1)
@@ -34,8 +38,8 @@ func main() {
 		default:
 			fmt.Println(command + ": command not found")
 		}
-	}
 }
+
 
 
 func readInput(reader *bufio.Reader) (string, error) {
