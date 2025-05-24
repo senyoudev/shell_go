@@ -29,7 +29,7 @@ func executeCommand(input string) {
 
 		switch command {
 		case "exit":
-			exit_code, err := strconv.Atoi(arguments[1])
+			exit_code, err := strconv.Atoi(arguments[0])
 			if err != nil {
 				fmt.Fprintln(os.Stderr, "Exit Code must be a number:", err)
 				os.Exit(1)
