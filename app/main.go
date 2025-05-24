@@ -35,6 +35,8 @@ func executeCommand(input string) {
 				os.Exit(1)
 			}
 			os.Exit(exit_code)
+		case "echo":
+			fmt.Println(arguments)
 		default:
 			fmt.Println(command + ": command not found")
 		}
