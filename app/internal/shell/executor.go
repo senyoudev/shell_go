@@ -55,6 +55,13 @@ func (s *Shell) handleTypeCommand(args []string) {
 		return
 	}
 
+	// Look for executables in PATH
+	path, err := exec.LookPath(cmdName)
+	if err == nil {
+		fmt.Printf("%s is %s\n", cmdName, path)
+		return
+	}
+
 	// Command not found
 	fmt.Printf("%s: not found\n", cmdName)
 }
