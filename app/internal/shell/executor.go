@@ -76,8 +76,8 @@ func parseArguments(input string) ([]string, error) {
 
 		// Handle single quotes
 		if char == '\'' {
-			i++ // Skip opening quote
-			// Read until next single quote (everything is literal)
+			i++ 
+			// Read until next single quote
 			for i < len(input) && input[i] != '\'' {
 				currentWord.WriteByte(input[i])
 				i++
@@ -85,7 +85,37 @@ func parseArguments(input string) ([]string, error) {
 			if i >= len(input) {
 				return nil, fmt.Errorf("unclosed single quote")
 			}
-			i++ // Skip closing quote
+			i++
+			continue
+		}
+
+		// Handle double quotes
+		if char == '"' {
+			i++
+			for i < len(input) && input[i] != '"' {
+				if input[i] == '\\' {
+					if i+1 >= len(input) {
+						return nil, fmt.Errorf("unterminated escape sequence")
+					}
+
+					nextChar := input[i + 1]
+					switch nextChar {
+					case '\\', '"', '$':
+						currentWord.WriteByte(nextChar)
+						i += 2 
+					default:
+						currentWord.WriteByte('\\')
+						i++
+					}
+				} else {
+					currentWord.WriteByte(input[i])
+					i++
+				}
+			}
+			if i >= len(input) {
+				return nil, fmt.Errorf("unclosed double quote")
+			}
+			i++
 			continue
 		}
 
