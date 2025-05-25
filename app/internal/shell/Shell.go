@@ -18,6 +18,7 @@ func NewShell() *Shell{
 	shell.registerBuiltin(commands.EchoCommand{})
 	shell.registerBuiltin(commands.TypeCommand{})
 	shell.registerBuiltin(commands.PwdCommand{})
+	shell.registerBuiltin(commands.CdCommand{})
 
 	return shell
 }
