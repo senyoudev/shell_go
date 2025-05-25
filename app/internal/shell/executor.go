@@ -9,11 +9,9 @@ import (
 
 
 func (s *Shell) ExecuteCommand(input string) {
-parts := strings.SplitN(input, " ", 2)
-	command := parts[0]
-	var arguments []string
-	if len(parts) > 1 {
-		arguments = strings.Fields(parts[1])
+	command, arguments, err := parseCommandLine(input)
+	if err != nil {
+		fmt.Printf("Unable to parse %s\n", input)
 	}
 
 	if command == "type" {
@@ -30,6 +28,89 @@ parts := strings.SplitN(input, " ", 2)
 	if err := s.executeExternal(command, arguments); err != nil {
 		fmt.Printf("%s: command not found\n", command)
 	}
+}
+
+func parseCommandLine(input string) (string, []string, error) {
+	input = strings.TrimSpace(input)
+	if input == "" {
+		return "", nil, fmt.Errorf("empty command")
+	}
+
+	// Extract command
+	firstSpaceIdx := strings.IndexFunc(input, func(r rune) bool { return r == ' ' || r == '\t' })
+	if firstSpaceIdx == -1 {
+		return input, []string{}, nil
+	}
+
+	command := input[:firstSpaceIdx]
+	rest := input[firstSpaceIdx:]
+
+	args, err := parseArguments(rest)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return command, args, nil
+}
+
+func parseArguments(input string) ([]string, error) {
+	var args []string
+	var currentWord strings.Builder
+	i := 0
+
+	for i < len(input) {
+		char := input[i]
+
+		// Skip whitespace between words
+		if char == ' ' || char == '\t' {
+			if currentWord.Len() > 0 {
+				args = append(args, currentWord.String())
+				currentWord.Reset()
+			}
+			// Skip all consecutive whitespace
+			for i < len(input) && (input[i] == ' ' || input[i] == '\t') {
+				i++
+			}
+			continue
+		}
+
+		// Handle single quotes
+		if char == '\'' {
+			i++ // Skip opening quote
+			// Read until next single quote (everything is literal)
+			for i < len(input) && input[i] != '\'' {
+				currentWord.WriteByte(input[i])
+				i++
+			}
+			if i >= len(input) {
+				return nil, fmt.Errorf("unclosed single quote")
+			}
+			i++ // Skip closing quote
+			continue
+		}
+
+		// Handle backslash outside quotes (escape next character)
+		if char == '\\' {
+			if i+1 >= len(input) {
+				return nil, fmt.Errorf("unterminated escape sequence")
+			}
+			// Add the escaped character literally
+			currentWord.WriteByte(input[i+1])
+			i += 2
+			continue
+		}
+
+		// Regular character
+		currentWord.WriteByte(char)
+		i++
+	}
+
+	// Add final word if present
+	if currentWord.Len() > 0 {
+		args = append(args, currentWord.String())
+	}
+
+	return args, nil
 }
 
 func (s *Shell) executeExternal(command string, args []string) error {
