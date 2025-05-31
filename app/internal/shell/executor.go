@@ -36,19 +36,18 @@ func parseCommandLine(input string) (string, []string, error) {
 		return "", nil, fmt.Errorf("empty command")
 	}
 
-	// Extract command
-	firstSpaceIdx := strings.IndexFunc(input, func(r rune) bool { return r == ' ' || r == '\t' })
-	if firstSpaceIdx == -1 {
-		return input, []string{}, nil
-	}
+	allWords, err := parseArguments(input)
+    if err != nil {
+        return "", nil, err
+    }
 
-	command := input[:firstSpaceIdx]
-	rest := input[firstSpaceIdx:]
+    if len(allWords) == 0 {
+        return "", []string{}, nil
+    }
 
-	args, err := parseArguments(rest)
-	if err != nil {
-		return "", nil, err
-	}
+    // First word is command, rest are arguments
+    command := allWords[0]
+    args := allWords[1:]
 
 	return command, args, nil
 }
@@ -119,7 +118,7 @@ func parseArguments(input string) ([]string, error) {
 			continue
 		}
 
-		// Handle backslash outside quotes (escape next character)
+		// Handle backslash outside quotes
 		if char == '\\' {
 			if i+1 >= len(input) {
 				return nil, fmt.Errorf("unterminated escape sequence")
